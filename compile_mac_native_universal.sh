@@ -21,7 +21,6 @@ export LDFLAGS="-arch x86_64 -arch i386"
 
 mkdir -p distrib/osx
 cd libusb-1.0.21
-./bootstrap.sh
 export LIBUSB_DIR=`pwd`
 ./configure --enable-static --disable-shared
 make clean
