@@ -4,3 +4,6 @@
 [submodule "hidapi"]
 	path = hidapi
 	url = git://github.com/signal11/hidapi.git
+[submodule "dfu-util-official"]
+	path = dfu-util-official
+	url = https://github.com/artynet/dfu-util-official.git
