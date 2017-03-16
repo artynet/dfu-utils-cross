@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-OUTPUT_VERSION=0.9.0-arduino1
+OUTPUT_VERSION=0.8.0-arduino2
 
 export OS=`uname -o || uname`
 
@@ -42,7 +42,7 @@ do
 	SHASUM=`sha256sum ${FILENAME} | cut -f1 -d" "`
 	T_OS=`echo ${t_os} | awk '{print toupper($0)}'`
 	echo $T_OS
-	package_index=`echo $package_index | 
+	package_index=`echo $package_index |
 		sed s/%%FILENAME_${T_OS}%%/${FILENAME}/ |
 		sed s/%%FILENAME_${T_OS}%%/${FILENAME}/ |
 		sed s/%%SIZE_${T_OS}%%/${SIZE}/ |
