@@ -24,10 +24,14 @@ CC=o64-clang ./configure --host=$platform --enable-static --disable-shared
 make clean
 make
 cd ..
-cd dfu-util-0.9
+cd dfu-util-dsigma
+./autogen.sh
 CC=o64-clang USB_CFLAGS="-I$LIBUSB_DIR/libusb/ -framework IOKit -framework CoreFoundation" USB_LIBS="-L$LIBUSB_DIR/libusb/.libs/ -lusb-1.0" ./configure --host=$platform
 make clean
 CFLAGS=-static make
 cp src/dfu-suffix src/dfu-prefix src/dfu-util ../distrib/osx/
+mv ../distrib/osx/dfu-util ../distrib/osx/dfu-util-bin
+cp ../launchers/dfu-util-unix ../distrib/osx/dfu-util
+chmod +x ../distrib/osx/dfu-util
 #cd libusb-1.0.9 && make distclean && cd..
 #cd dfu-util-0.8 && make distclean && cd..
