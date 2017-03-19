@@ -1,3 +1,4 @@
 [submodule "dfu-util-dsigma"]
 	path = dfu-util-dsigma
 	url = https://github.com/dsigma/dfu-util.git
+	ignore = dirty
