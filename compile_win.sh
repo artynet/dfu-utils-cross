@@ -17,13 +17,15 @@
 
 export CFLAGS="-mno-ms-bitfields"
 mkdir -p distrib/windows
-cd libusb-1.0.20
+cd libusb-1.0.21/
+autoreconf -v -i
 export LIBUSB_DIR=`pwd`
 CFLAGS="-mno-ms-bitfields -static" ./configure --host=i686-w64-mingw32 --enable-static --disable-shared
 make clean
 CFLAGS="-mno-ms-bitfields -static" make
 cd ..
-cd dfu-util-0.9
+cd dfu-util-official/
+autoreconf -v -i
 CFLAGS="-mno-ms-bitfields -static" USB_CFLAGS="-I$LIBUSB_DIR/libusb/" USB_LIBS="-L$LIBUSB_DIR/libusb/.libs/ -lusb-1.0" ./configure --host=i686-w64-mingw32
 make clean
 CFLAGS="-mno-ms-bitfields -static" make

@@ -18,13 +18,15 @@
 platform=$(o64-clang -v 2>&1 | grep Target | awk {'print $2'} | sed 's/[.].*//g')
 
 mkdir -p distrib/osx
-cd libusb-1.0.20
+cd libusb-1.0.21/
+autoreconf -v -i
 export LIBUSB_DIR=`pwd`
 CC=o64-clang ./configure --host=$platform --enable-static --disable-shared
 make clean
 make
 cd ..
-cd dfu-util-0.9
+cd dfu-util-official/
+autoreconf -v -i
 CC=o64-clang USB_CFLAGS="-I$LIBUSB_DIR/libusb/ -framework IOKit -framework CoreFoundation" USB_LIBS="-L$LIBUSB_DIR/libusb/.libs/ -lusb-1.0" ./configure --host=$platform
 make clean
 CFLAGS=-static make
