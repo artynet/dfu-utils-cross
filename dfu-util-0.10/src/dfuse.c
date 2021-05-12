@@ -146,7 +146,7 @@ static int dfuse_upload(struct dfu_if *dif, const unsigned short length,
 }
 
 /* DFU_DNLOAD request for DfuSe 1.1a */
-static int dfuse_download(struct dfu_if *dif, const unsigned short length,
+int dfuse_download(struct dfu_if *dif, const unsigned short length,
 		   unsigned char *data, unsigned short transaction)
 {
 	int status;
@@ -170,7 +170,7 @@ static int dfuse_download(struct dfu_if *dif, const unsigned short length,
 
 /* DfuSe only commands */
 /* Leaves the device in dfuDNLOAD-IDLE state */
-static int dfuse_special_command(struct dfu_if *dif, unsigned int address,
+int dfuse_special_command(struct dfu_if *dif, unsigned int address,
 			  enum dfuse_command command)
 {
 	const char* dfuse_command_name[] = { "SET_ADDRESS" , "ERASE_PAGE",
