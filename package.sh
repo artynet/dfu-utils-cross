@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-OUTPUT_VERSION=0.10.0-arancino1
+OUTPUT_VERSION=0.9.0-arancino1
 
 export OS=`uname -o || uname`
 
@@ -23,7 +23,7 @@ export OS=`uname -o || uname`
 # cd libusb && ./bootstrap.sh && cd ..
 # cd dfu-util && ./autogen.sh && cd ..
 cd libusb-1.0.23 && ./bootstrap.sh && cd ..
-cd dfu-util-0.10 && ./autogen.sh && cd ..
+cd dfu-util-0.9 && ./autogen.sh && cd ..
 
 ./compile_win.sh
 ./compile_linux.sh

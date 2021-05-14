@@ -23,7 +23,7 @@ CFLAGS="-mno-ms-bitfields -static" ./configure --host=i686-w64-mingw32 --enable-
 make clean
 CFLAGS="-mno-ms-bitfields -static" make
 cd ..
-cd dfu-util-0.10
+cd dfu-util-0.9
 CFLAGS="-mno-ms-bitfields -static" USB_CFLAGS="-I$LIBUSB_DIR/libusb/" USB_LIBS="-L$LIBUSB_DIR/libusb/.libs/ -lusb-1.0" ./configure --host=i686-w64-mingw32
 make clean
 CFLAGS="-mno-ms-bitfields -static" make

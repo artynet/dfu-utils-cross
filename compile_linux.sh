@@ -22,7 +22,7 @@ CFLAGS="-lrt" ./configure --enable-static --disable-shared --disable-udev --host
 make clean
 make
 cd ..
-cd dfu-util-0.10
+cd dfu-util-0.9
 CFLAGS="-lrt" USB_CFLAGS="-I$LIBUSB_DIR/libusb/" USB_LIBS="-L$LIBUSB_DIR/libusb/.libs/ -lusb-1.0 -lpthread" ./configure --host=x86_64-ubuntu16.04-linux-gnu
 make clean
 CFLAGS=-static make
@@ -36,7 +36,7 @@ CFLAGS="-lrt" ./configure  --enable-static --disable-shared --disable-udev --hos
 make clean
 make
 cd ..
-cd dfu-util-0.10
+cd dfu-util-0.9
 CFLAGS="-lrt" USB_CFLAGS="-I$LIBUSB_DIR/libusb/" USB_LIBS="-L$LIBUSB_DIR/libusb/.libs/ -lusb-1.0 -lpthread" ./configure --host=i686-ubuntu16.04-linux-gnu
 make clean
 CFLAGS=-static make
@@ -50,7 +50,7 @@ export LIBUSB_DIR=`pwd`
 make clean
 make
 cd ..
-cd dfu-util-0.10
+cd dfu-util-0.9
 USB_CFLAGS="-I$LIBUSB_DIR/libusb/" USB_LIBS="-L$LIBUSB_DIR/libusb/.libs/ -lusb-1.0 -lpthread" ./configure --host=arm-linux-gnueabihf
 make clean
 CFLAGS=-static make
@@ -64,7 +64,7 @@ export LIBUSB_DIR=`pwd`
 make clean
 make
 cd ..
-cd dfu-util-0.10
+cd dfu-util-0.9
 USB_CFLAGS="-I$LIBUSB_DIR/libusb/" USB_LIBS="-L$LIBUSB_DIR/libusb/.libs/ -lusb-1.0 -lpthread" ./configure --host=aarch64-linux-gnu
 make clean
 CFLAGS=-static make
