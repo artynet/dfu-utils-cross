@@ -670,11 +670,6 @@ status_again:
 			break;
 		}
 		//fallthrough (no break) is intentional for MODE_DOWNLOAD_RESET
-	case MODE_DETACH:
-		if (dfu_detach(dfu_root->dev_handle, dfu_root->interface, 1000) < 0) {
-			warnx("can't detach");
-		}
-		break;
 	case MODE_RESET_STM32:
 		//ST Application Note 3156 Documents how to reset an STM32 out of DFU mode and into firmware mode
 		//Basicly, send the target vector reset address, then a zero-length download command, then by a get status command.
@@ -703,6 +698,11 @@ status_again:
 			printf("Error: Expected STM32 to be in dfuMANIFEST state after get-status command!\n");
 		} else {
 			printf("Successfully reset STM32\n");
+		}
+		break;
+	case MODE_DETACH:
+		if (dfu_detach(dfu_root->dev_handle, dfu_root->interface, 1000) < 0) {
+			warnx("can't detach");
 		}
 		break;
 	default:
