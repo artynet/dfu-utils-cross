@@ -46,11 +46,7 @@ struct usb_dfu_func_descriptor {
 };
 # pragma pack(pop)
 #elif defined __GNUC__
-# if defined __MINGW32__
-} __attribute__ ((__packed__, __gcc_struct__));
-# else
-} __attribute__ ((__packed__));
-# endif
+} __attribute__ ((packed));
 #else
  #warning "No way to pack struct on this compiler? This will break!"
 #endif /* _MSC_VER */

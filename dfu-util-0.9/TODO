@@ -1,4 +1,5 @@
 DfuSe:
+- Do erase and write in two separate passes when downloading
 - Skip "Set Address" command when downloading contiguous blocks
 - Implement "Get Commands" command
 

@@ -1,7 +1,7 @@
 /*
  * Load or store DFU files including suffix and prefix
  *
- * Copyright 2014-2019 Tormod Volden <debian.tormod@gmail.com>
+ * Copyright 2014 Tormod Volden <debian.tormod@gmail.com>
  * Copyright 2012 Stefan Schmidt <stefan@datenfreihafen.org>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -93,11 +93,6 @@ static int probe_prefix(struct dfu_file *file)
 	if (file->size.total <  LMDFU_PREFIX_LENGTH)
 		return 1;
 	if ((prefix[0] == 0x01) && (prefix[1] == 0x00)) {
-		uint32_t payload_length = (prefix[7] << 24) | (prefix[6] << 16) |
-			(prefix[5] << 8) | prefix[4];
-		uint32_t expected_payload_length = file->size.total - LMDFU_PREFIX_LENGTH - file->size.suffix;
-		if (payload_length != expected_payload_length)
-			return 1;
 		file->prefix_type = LMDFU_PREFIX;
 		file->size.prefix = LMDFU_PREFIX_LENGTH;
 		file->lmdfu_address = 1024 * ((prefix[3] << 8) | prefix[2]);
@@ -147,7 +142,7 @@ void dfu_progress_bar(const char *desc, unsigned long long curr,
 	}
 	buf[x] = 0;
 
-	printf("\r%s\t[%s] %3llu%% %12llu bytes", desc, buf,
+	printf("\r%s\t[%s] %3lld%% %12lld bytes", desc, buf,
 	    (100ULL * curr) / max, curr);
 
 	if (progress == PROGRESS_BAR_WIDTH)
@@ -309,11 +304,9 @@ checked:
 				warnx("%s", reason);
 				errx(EX_IOERR, "Valid DFU suffix needed");
 			} else if (check_suffix == MAYBE_SUFFIX) {
-				if (verbose) {
-					warnx("%s", reason);
-					warnx("A valid DFU suffix will be required in "
-					      "a future dfu-util release!!!");
-				}
+				warnx("%s", reason);
+				warnx("A valid DFU suffix will be required in "
+				      "a future dfu-util release!!!");
 			}
 		} else {
 			if (check_suffix == NO_SUFFIX) {
@@ -335,7 +328,7 @@ checked:
 				   "Payload length: %d\n",
 				   file->lmdfu_address,
 				   data[4] | (data[5] << 8) |
-				   (data[6] << 16) | (data[7] << 24));
+				   (data[6] << 16) | (data[7] << 14));
 		else if (file->prefix_type == LPCDFU_UNENCRYPTED_PREFIX)
 			printf("Possible unencrypted NXP LPC DFU prefix with "
 				   "the following properties\n"

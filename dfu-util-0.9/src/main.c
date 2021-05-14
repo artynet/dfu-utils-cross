@@ -2,7 +2,7 @@
  * dfu-util
  *
  * Copyright 2007-2008 by OpenMoko, Inc.
- * Copyright 2010-2019 Tormod Volden and Stefan Schmidt
+ * Copyright 2010-2016 Tormod Volden and Stefan Schmidt
  * Copyright 2013-2014 Hans Petter Selasky <hps@bitfrost.no>
  *
  * Written by Harald Welte <laforge@openmoko.org>
@@ -35,10 +35,12 @@
 
 #include "portable.h"
 #include "dfu.h"
+#include "usb_dfu.h"
 #include "dfu_file.h"
 #include "dfu_load.h"
 #include "dfu_util.h"
 #include "dfuse.h"
+#include "quirks.h"
 
 int verbose = 0;
 
@@ -150,7 +152,7 @@ static int parse_number(char *str, char *nmb)
 		errx(EX_SOFTWARE, "Something went wrong with the argument of --%s\n", str);
 	}
 
-	if (endptr == nmb) {
+	if (endptr == str) {
 		errx(EX_SOFTWARE, "No digits were found from the argument of --%s\n", str);
 	}
 
@@ -183,7 +185,6 @@ static void help(void)
 		"  -s --dfuse-address <address>\tST DfuSe mode, specify target address for\n"
 		"\t\t\t\traw file download or upload. Not applicable for\n"
 		"\t\t\t\tDfuSe file (.dfu) downloads\n"
-		"  -w --wait\t\t\tWait for device to appear\n"
 		);
 	exit(EX_USAGE);
 }
@@ -192,7 +193,7 @@ static void print_version(void)
 {
 	printf(PACKAGE_STRING "\n\n");
 	printf("Copyright 2005-2009 Weston Schmidt, Harald Welte and OpenMoko Inc.\n"
-	       "Copyright 2010-2020 Tormod Volden and Stefan Schmidt\n"
+	       "Copyright 2010-2016 Tormod Volden and Stefan Schmidt\n"
 	       "This program is Free Software and has ABSOLUTELY NO WARRANTY\n"
 	       "Please report bugs to " PACKAGE_BUGREPORT "\n\n");
 }
@@ -219,7 +220,6 @@ static struct option opts[] = {
 	{ "download", 1, 0, 'D' },
 	{ "reset", 0, 0, 'R' },
 	{ "dfuse-address", 1, 0, 's' },
-	{ "wait", 1, 0, 'w' },
 	{ 0, 0, 0, 0 }
 };
 
@@ -233,7 +233,6 @@ int main(int argc, char **argv)
 	struct dfu_file file;
 	char *end;
 	int final_reset = 0;
-	int wait_device = 0;
 	int ret;
 	int dfuse_device = 0;
 	int fd;
@@ -249,7 +248,7 @@ int main(int argc, char **argv)
 
 	while (1) {
 		int c, option_index = 0;
-		c = getopt_long(argc, argv, "hVvleE:d:p:c:i:a:S:t:U:D:Rs:Z:w", opts,
+		c = getopt_long(argc, argv, "hVvleE:d:p:c:i:a:S:t:U:D:Rs:Z:", opts,
 				&option_index);
 		if (c == -1)
 			break;
@@ -277,11 +276,7 @@ int main(int argc, char **argv)
 			parse_vendprod(optarg);
 			break;
 		case 'p':
-#if (defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102) || (defined(LIBUSBX_API_VERSION) && LIBUSBX_API_VERSION >= 0x01000102)
 			match_path = optarg;
-#else
-			errx(EX_SOFTWARE, "This dfu-util was built without USB path support");
-#endif
 			break;
 		case 'c':
 			/* Configuration */
@@ -322,9 +317,6 @@ int main(int argc, char **argv)
 		case 's':
 			dfuse_options = optarg;
 			break;
-		case 'w':
-			wait_device = 1;
-			break;
 		default:
 			help();
 			break;
@@ -360,22 +352,14 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (wait_device) {
-		printf("Waiting for device, exit with ctrl-C\n");
-	}
-
 	ret = libusb_init(&ctx);
 	if (ret)
-		errx(EX_IOERR, "unable to initialize libusb: %s", libusb_error_name(ret));
+		errx(EX_IOERR, "unable to initialize libusb: %i", ret);
 
 	if (verbose > 2) {
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000106
-		libusb_set_option(LIBUSB_OPTION_LOG_LEVEL, 255);
-#else
 		libusb_set_debug(ctx, 255);
-#endif
 	}
-probe:
+
 	probe_devices(ctx);
 
 	if (mode == MODE_LIST) {
@@ -384,12 +368,7 @@ probe:
 	}
 
 	if (dfu_root == NULL) {
-		if (wait_device) {
-			milli_sleep(20);
-			goto probe;
-		} else {
-			errx(EX_IOERR, "No DFU capable USB device available");
-		}
+		errx(EX_IOERR, "No DFU capable USB device available");
 	} else if (dfu_root->next != NULL) {
 		/* We cannot safely support more than one DFU capable device
 		 * with same vendor/product ID, since during DFU we need to do
@@ -405,7 +384,7 @@ probe:
 	printf("Opening DFU capable USB device...\n");
 	ret = libusb_open(dfu_root->dev, &dfu_root->dev_handle);
 	if (ret || !dfu_root->dev_handle)
-		errx(EX_IOERR, "Cannot open device: %s", libusb_error_name(ret));
+		errx(EX_IOERR, "Cannot open device");
 
 	printf("ID %04x:%04x\n", dfu_root->vendor, dfu_root->product);
 
@@ -424,15 +403,13 @@ probe:
 		runtime_product = dfu_root->product;
 
 		printf("Claiming USB DFU Runtime Interface...\n");
-		ret = libusb_claim_interface(dfu_root->dev_handle, dfu_root->interface);
-		if (ret < 0) {
-			errx(EX_IOERR, "Cannot claim interface %d: %s",
-				dfu_root->interface, libusb_error_name(ret));
+		if (libusb_claim_interface(dfu_root->dev_handle, dfu_root->interface) < 0) {
+			errx(EX_IOERR, "Cannot claim interface %d",
+				dfu_root->interface);
 		}
 
-		ret = libusb_set_interface_alt_setting(dfu_root->dev_handle, dfu_root->interface, 0);
-		if (ret < 0) {
-			errx(EX_IOERR, "Cannot set alt interface zero: %s", libusb_error_name(ret));
+		if (libusb_set_interface_alt_setting(dfu_root->dev_handle, dfu_root->interface, 0) < 0) {
+			errx(EX_IOERR, "Cannot set alt interface zero");
 		}
 
 		printf("Determining device status: ");
@@ -468,7 +445,7 @@ probe:
 				ret = libusb_reset_device(dfu_root->dev_handle);
 				if (ret < 0 && ret != LIBUSB_ERROR_NOT_FOUND)
 					errx(EX_IOERR, "error resetting "
-						"after detach: %s", libusb_error_name(ret));
+						"after detach");
 			}
 			break;
 		case DFU_STATE_dfuERROR:
@@ -534,28 +511,24 @@ probe:
 dfustate:
 #if 0
 	printf("Setting Configuration %u...\n", dfu_root->configuration);
-	ret = libusb_set_configuration(dfu_root->dev_handle, dfu_root->configuration);
-	if (ret < 0) {
-		errx(EX_IOERR, "Cannot set configuration: %s", libusb_error_name(ret));
+	if (libusb_set_configuration(dfu_root->dev_handle, dfu_root->configuration) < 0) {
+		errx(EX_IOERR, "Cannot set configuration");
 	}
 #endif
 	printf("Claiming USB DFU Interface...\n");
-	ret = libusb_claim_interface(dfu_root->dev_handle, dfu_root->interface);
-	if (ret < 0) {
-		errx(EX_IOERR, "Cannot claim interface - %s", libusb_error_name(ret));
+	if (libusb_claim_interface(dfu_root->dev_handle, dfu_root->interface) < 0) {
+		errx(EX_IOERR, "Cannot claim interface");
 	}
 
 	printf("Setting Alternate Setting #%d ...\n", dfu_root->altsetting);
-	ret = libusb_set_interface_alt_setting(dfu_root->dev_handle, dfu_root->interface, dfu_root->altsetting);
-	if (ret < 0) {
-		errx(EX_IOERR, "Cannot set alternate interface: %s", libusb_error_name(ret));
+	if (libusb_set_interface_alt_setting(dfu_root->dev_handle, dfu_root->interface, dfu_root->altsetting) < 0) {
+		errx(EX_IOERR, "Cannot set alternate interface");
 	}
 
 status_again:
 	printf("Determining device status: ");
-	ret = dfu_get_status(dfu_root, &status );
-	if (ret < 0) {
-		errx(EX_IOERR, "error get_status: %s", libusb_error_name(ret));
+	if (dfu_get_status(dfu_root, &status ) < 0) {
+		errx(EX_IOERR, "error get_status");
 	}
 	printf("state = %s, status = %d\n",
 	       dfu_state_to_string(status.bState), status.bStatus);
@@ -696,7 +669,7 @@ status_again:
 		printf("Resetting USB to switch back to runtime mode\n");
 		ret = libusb_reset_device(dfu_root->dev_handle);
 		if (ret < 0 && ret != LIBUSB_ERROR_NOT_FOUND) {
-			errx(EX_IOERR, "error resetting after download: %s", libusb_error_name(ret));
+			errx(EX_IOERR, "error resetting after download");
 		}
 	}
 

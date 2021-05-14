@@ -19,13 +19,13 @@
 #ifdef HAVE_NANOSLEEP
 # include <time.h>
 # define milli_sleep(msec) do {\
-  if (msec != 0) {\
+  if (msec) {\
     struct timespec nanosleepDelay = { (msec) / 1000, ((msec) % 1000) * 1000000 };\
     nanosleep(&nanosleepDelay, NULL);\
   } } while (0)
 #elif defined HAVE_WINDOWS_H
 # define milli_sleep(msec) do {\
-  if (msec != 0) {\
+  if (msec) {\
     Sleep(msec);\
   } } while (0)
 #else
