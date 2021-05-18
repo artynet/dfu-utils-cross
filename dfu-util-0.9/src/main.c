@@ -245,6 +245,7 @@ int main(int argc, char **argv)
 	const char *dfuse_options = NULL;
 	int vector_address = 0x08000000;
 	int detach_delay = 5;
+	int status_delay = 2;
 	uint16_t runtime_vendor;
 	uint16_t runtime_product;
 
@@ -687,6 +688,10 @@ status_again:
 			printf("Error: Unable to initiate zero-length download\n");
 			exit(1);
 		}
+
+		// sleeping 1 second to detect status
+		milli_sleep(status_delay * 1000);
+
 		struct dfu_status dest_status;
 		int rr = dfu_get_status( dfu_root, &dest_status );
 		if( rr < 0 ) {
