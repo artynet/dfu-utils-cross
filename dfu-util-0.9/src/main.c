@@ -245,7 +245,7 @@ int main(int argc, char **argv)
 	const char *dfuse_options = NULL;
 	int vector_address = 0x08000000;
 	int detach_delay = 5;
-	int status_delay = 2;
+	// int status_delay = 10;
 	uint16_t runtime_vendor;
 	uint16_t runtime_product;
 
@@ -690,20 +690,27 @@ status_again:
 		}
 
 		// sleeping 1 second to detect status
-		milli_sleep(status_delay * 1000);
+		// milli_sleep(status_delay * 1000);
 
 		struct dfu_status dest_status;
+
 		int rr = dfu_get_status( dfu_root, &dest_status );
-		if( rr < 0 ) {
-			printf("Error: Unable to get status: %d\n", rr);
-			exit(1);
+		while( rr != -4 ) {
+			rr = dfu_get_status( dfu_root, &dest_status );
+			milli_sleep(1 * 1000);
+			printf("Waiting....%d\n");
 		}
 
-		if( dest_status.bState != STATE_DFU_MANIFEST) {
-			printf("Error: Expected STM32 to be in dfuMANIFEST state after get-status command!\n");
-		} else {
-			printf("Successfully reset STM32\n");
-		}
+		printf("Successfully reset STM32\n");
+
+		// since we can't detect the STATE_DFU_MANIFEST from the bootloader itself
+		// we have temporarily suppressed this part
+		//
+		// if( dest_status.bState != STATE_DFU_MANIFEST) {
+		// 	printf("Error: Expected STM32 to be in dfuMANIFEST state after get-status command!\n");
+		// } else {
+		// 	printf("Successfully reset STM32\n");
+		// }
 		break;
 	case MODE_DETACH:
 		if (dfu_detach(dfu_root->dev_handle, dfu_root->interface, 1000) < 0) {
